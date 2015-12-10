@@ -21,7 +21,7 @@ void train_feat_processing(feat_proc_t* feature_proc){
 
 	int i,j,k;
 	double* feature_array = (double*)feature_proc->feature_input->shm_buf;
-	double* training_set = (double*)malloc(feature_proc->nb_train_samples*2);
+	double* training_set = (double*)malloc(feature_proc->nb_train_samples*2*sizeof(double));
 	
 	double max_left;
 	double max_right;
