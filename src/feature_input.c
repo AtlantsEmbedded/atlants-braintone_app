@@ -1,3 +1,10 @@
+/**
+ * @file feature_input.c
+ * @author Frederic Simard (fred.simard@atlantsembedded.com)
+ * @date Jan 2016
+ * @brief Sets the virtual interface to read features from.
+ * 
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,11 +23,13 @@
  */
 int init_feature_input(char input_type, feature_input_t* feature_input){
 
+	/*default values*/
 	_INIT_FEAT_INPUT_FC = NULL;
 	_REQUEST_FEAT_FC = NULL;
 	_WAIT_FEAT_FC = NULL;
 	_TERMINATE_FEAT_INPUT_FC = NULL;
 
+	/*shared memory interface*/
 	if(input_type == SHM_INPUT) {
 		
 		printf("Input source: SHM\n");
@@ -29,6 +38,7 @@ int init_feature_input(char input_type, feature_input_t* feature_input){
 		_WAIT_FEAT_FC = &shm_rd_wait_for_request_completed;
 		_TERMINATE_FEAT_INPUT_FC = &shm_rd_cleanup;
 	}
+	/*fake input interface*/
 	else if(input_type == FAKE_INPUT){
 		printf("Input source: FAKE\n");
 		_INIT_FEAT_INPUT_FC = &fake_feat_gen_init;

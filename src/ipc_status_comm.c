@@ -1,4 +1,13 @@
-
+/**
+ * @file feature_processing.c
+ * @author Frederic Simard (fred.simard@atlantsembedded.com)
+ * @date Jan 2016
+ * @brief interprocess communication service. This is initialized with a key
+ * that is shared by all stages of the processing stream: data_interface, data_preprocessing and application
+ * 
+ * It handles semaphores to sync the data and feature buffers. System status will eventually
+ * be removed and replace by a socket-based communication.
+*/
 
 #include <stdlib.h>
 #include <stdio.h>

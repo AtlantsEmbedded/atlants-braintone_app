@@ -1,16 +1,9 @@
 /**
  * @file shm_rd_buf.c
  * @author Frederic Simard, Atlants Embedded (frederic.simard.1@outlook.com)
- * @brief This file implements the shared memory data input system.
- *        The shared memory is meant to be shared between at least two processes and
- *        takes the form of a circular buffer with several pages. When one page is done
- *        writing a semaphore is set to inform the reader (this process) 
- *        that a page is available to read. only when the reader confirms that 
- *        the data has been read is the writer allowed to write in it.
- * 
- *        When no page is available to write, the current process drops the sample. The number
- *        of pages should be kept as small as possible to prevent processing old data while
- *        dropping newest...
+ * @brief This file implements the shared memory feature input system.
+ *        This service drive all the input stream, opening buffers on request
+ * 		  and providing a blocking call to wait for the news sample
  */
 
 #include <stdio.h>
@@ -65,6 +58,7 @@ int shm_rd_init(void *param){
 	/*allocate the memory for the pointer to semaphore operations*/
 	pfeature_input->sops = (struct sembuf *) malloc(sizeof(struct sembuf));
 
+	/*set all semaphores to 0*/
 	for(i=0;i<4;i++){
 		semctl(pfeature_input->semid, i, SETVAL, 0);
 	}
@@ -74,10 +68,9 @@ int shm_rd_init(void *param){
 
 
 /**
- * int shm_rd_read_from_buf(void *param)
- * @brief Reads data from the shared memory buffer and writes in the structure
- *        received as input.
- * @param param, reference to the structure where the data should be put
+ * int shm_rd_request(void *param)
+ * @brief Open the buffers to catch a new sample
+ * @param param, reference to the feature input struct
  * @return EXIT_FAILURE for unknown type, EXIT_SUCCESS for known/success
  */
 int shm_rd_request(void *param){
@@ -101,6 +94,12 @@ int shm_rd_request(void *param){
 }
 
 
+/**
+ * int shm_rd_request(void *param)
+ * @brief Blocking call, until a sample has arrived
+ * @param param, reference to the feature input struct
+ * @return EXIT_FAILURE for unknown type, EXIT_SUCCESS for known/success
+ */
 int shm_rd_wait_for_request_completed(void *param){
 	
 	feature_input_t* pfeature_input = param;

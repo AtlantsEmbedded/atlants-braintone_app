@@ -1,3 +1,9 @@
+/**
+ * @file buzzer_lib.c
+ * @author Frederic Simard (fred.simard@atlantsembedded.com)
+ * @date Jan 2016
+ * @brief Library to operate a piezo-buzzer originally made for the braintone app
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,7 +74,7 @@ int set_buzzer_state(int state){
 }
 
 /**
- * set_beep_mode()
+ * int set_beep_mode(unsigned char state_a, unsigned char state_b, int half_period)
  * @brief Sets the beeper on an intermittent mode
  */
 int set_beep_mode(unsigned char state_a, unsigned char state_b, int half_period){
@@ -94,9 +100,8 @@ int set_beep_mode(unsigned char state_a, unsigned char state_b, int half_period)
 
 
 /**
- * set_led_strip_flash_state(void)
- * @brief 
- * @param 
+ * void* beep_mode(void*)
+ * @brief run the buzzer through the alternating states (thread)
  */
 void* beep_mode(void* param __attribute__ ((unused))){
 
