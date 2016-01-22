@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 		get_normalized_sample(&(feature_proc[PLAYER_1]));
 		
 		/*adjust the sample value to the pitch scale*/
-		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/3.5);
+		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
 		/*compute the running average, using the defined kernel*/
 		running_avg += (adjusted_sample-running_avg)/app_config->avg_kernel;
 		

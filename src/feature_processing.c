@@ -28,7 +28,7 @@
 #define SECOND_CHANNEL_OFFSET 3*CHANNEL_WIDTH
 
 /*threshold to detect eye-blinks*/
-#define EYE_BLINK_THRESHOLD 3.5
+#define EYE_BLINK_THRESHOLD 4
 
 void get_peak_from_channels(double* max_left, double* max_right, double* feature_array);
 void stat_mean(double *a, double *mean, int dim_i, int dim_j);
