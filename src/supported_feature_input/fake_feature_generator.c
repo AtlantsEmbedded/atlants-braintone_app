@@ -29,8 +29,7 @@ extern double randn();
 int fake_feat_gen_init(void *param){
 	
 	feature_input_t* pfeature_input = param;
-	pfeature_input->shm_buf = malloc(sizeof(double)*SAMPLE_LENGTH);
-	
+	pfeature_input->shm_buf = malloc(pfeature_input->page_size);
 	/*nothing to do*/
 	return EXIT_SUCCESS;
 }
@@ -52,22 +51,57 @@ int fake_feat_gen_request(void *param __attribute__((unused))){
  * @param reference to the feature input
  * @return EXIT_FAILURE/EXIT_SUCCESS
  */
-int fake_feat_gen_wait_for_request_completed(void *param){
-	
-	int i;
-	feature_input_t* pfeature_input = param;
-	double* feature_array = (double*)pfeature_input->shm_buf;
-	
-	/*file the buffer with random values*/
-	for(i=0;i<SAMPLE_LENGTH;i++){
-		feature_array[i] = (double)rand()/(double)RAND_MAX;
-	}
+int fake_feat_gen_wait_for_request_completed(void *param __attribute__((unused))){
 	
 	/*wait to simulate a delay*/
 	usleep(500000);
 	
 	return EXIT_SUCCESS;
 }
+
+
+/**
+ * double* fake_feat_gen_feature_array_ref(void *param)
+ * @brief get a handle on the current frame info
+ * @param reference to the feature input
+ * @return pointer to frame info
+ */
+frame_info_t* fake_feat_gen_frame_info_ref(void *param){
+	
+	feature_input_t* pfeature_input = param;
+	frame_info_t* frame_info = (frame_info_t*)pfeature_input->shm_buf;
+	
+	/*randomly generate 10% of blinks*/
+	if((double)rand()/(double)RAND_MAX < 0.1){
+		frame_info->eye_blink_detected = 0x01;
+	}else{
+		frame_info->eye_blink_detected = 0x00;
+	}
+	
+	return frame_info;
+}
+
+
+/**
+ * double* fake_feat_gen_feature_array_ref(void *param)
+ * @brief get a handle on the current feature array
+ * @param reference to the feature input
+ * @return pointer to feature array
+ */
+double* fake_feat_gen_feature_array_ref(void *param){
+	
+	int i=0;
+	feature_input_t* pfeature_input = param;
+	double* feature_array = (double*)&(pfeature_input->shm_buf[sizeof(frame_info_t)]);
+	
+	/*file the buffer with random values*/
+	for(i=0;i<pfeature_input->nb_features;i++){
+		feature_array[i] = (double)rand()/(double)RAND_MAX;
+	}
+
+	return feature_array;
+}
+
 
 /**
  * int fake_feat_gen_cleanup(void *param)

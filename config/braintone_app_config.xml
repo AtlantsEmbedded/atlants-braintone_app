@@ -3,9 +3,16 @@
   <appAttributes>
     <debug>TRUE</debug>
     <feature_source>SHM</feature_source>
-    <feature_vect_size>220</feature_vect_size>
-    <training_set_size>20</training_set_size>
+    <nb_channels>4</nb_channels>
+    <window_width>110</window_width>
+    <timeseries>FALSE</timeseries>
+    <fft>TRUE</fft>
+    <power_alpha>FALSE</power_alpha>
+    <power_beta>FALSE</power_beta>
+    <power_gamma>FALSE</power_gamma>
+    <buffer_depth>2</buffer_depth>
     <eeg_harware_present>TRUE</eeg_harware_present>
+    <training_set_size>20</training_set_size>
     <test_duration>60</test_duration>
     <avg_kernel>10</avg_kernel>
   </appAttributes>

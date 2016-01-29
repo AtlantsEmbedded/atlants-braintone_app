@@ -14,12 +14,14 @@
  *        of pages should be kept as small as possible to prevent processing old data while
  *        dropping newest...
  */
+ 
+#include "feature_structure.h"
 
-#define NB_FEATURES 220
-#define FEATURE_SIZE 8 
-#define SAMPLE_SIZE NB_FEATURES*FEATURE_SIZE 
-#define BUFFER_DEPTH 2 /*nb of samples in the buffer*/
-#define SHM_BUF_SIZE BUFFER_DEPTH*SAMPLE_SIZE
+//#define NB_FEATURES 220
+//#define FEATURE_SIZE 8 
+//#define SAMPLE_SIZE NB_FEATURES*FEATURE_SIZE 
+//#define BUFFER_DEPTH 2 /*nb of samples in the buffer*/
+//#define SHM_BUF_SIZE BUFFER_DEPTH*SAMPLE_SIZE
  
 /*this list must be shared between the following processes:
  * - DATA_interface
@@ -39,6 +41,8 @@
 int shm_rd_init(void *param);
 int shm_rd_request(void *param);
 int shm_rd_wait_for_request_completed(void *param);
+frame_info_t* shm_get_frame_info_ref(void *param);
+double* shm_get_feature_array_ref(void *param);
 int shm_rd_cleanup(void *param);
 
 

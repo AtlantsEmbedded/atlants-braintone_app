@@ -23,7 +23,16 @@ typedef struct appconfig_s {
 	
 	/*feature source config*/
 	char feature_source;
-    int feature_vect_size;
+	
+	/*feature vect config*/
+	int nb_channels;
+	int window_width;
+	int buffer_depth;
+	char timeseries;
+	char fft;
+	char power_alpha;
+	char power_beta;
+	char power_gamma;
 	
 	/*Hardware status*/
 	char eeg_hardware_required;
@@ -36,8 +45,8 @@ typedef struct appconfig_s {
 } appconfig_t;
 
 appconfig_t *xml_initialize(char *filename);
-inline appconfig_t *get_appconfig();
-inline void set_appconfig(appconfig_t *config_obj);
+appconfig_t *get_appconfig();
+void set_appconfig(appconfig_t *config_obj);
 
 
 #endif

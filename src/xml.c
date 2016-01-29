@@ -19,7 +19,9 @@ static int get_app_attributes(ezxml_t app_attribute, appconfig_t * app_info);
 static int sanity_check_app_attributes(ezxml_t app_attribute);
 
 const char *XML_app_elements[] =
-    { "debug", "feature_source", "feature_vect_size", "training_set_size", "eeg_harware_present","test_duration","avg_kernel"};
+    { "debug", "feature_source", "nb_channels", "window_width", "timeseries", "fft", "power_alpha",
+	  "power_beta", "power_gamma","buffer_depth","eeg_harware_present", "training_set_size","test_duration","avg_kernel"
+	};
 
 static appconfig_t *config = NULL;
 
@@ -28,7 +30,7 @@ static appconfig_t *config = NULL;
  * @brief Returns the appconfig
  * @return appconfig_t
  */
-inline appconfig_t *get_appconfig()
+appconfig_t *get_appconfig()
 {
 	return config;
 }
@@ -38,7 +40,7 @@ inline appconfig_t *get_appconfig()
  * @brief sets appconfig
  * @param config_obj
  */
-inline void set_appconfig(appconfig_t * config_obj)
+void set_appconfig(appconfig_t * config_obj)
 {
 	config = config_obj;
 }
@@ -85,21 +87,89 @@ static int get_app_attributes(ezxml_t app_attribute, appconfig_t * app_info)
 		app_info->feature_source = 0;
 	}
 
-	/*Get appAttributes/feature_vect_size*/
-	tmp = ezxml_child(app_attribute, "feature_vect_size");
+	/*Get appAttributes/nb_channels*/
+	tmp = ezxml_child(app_attribute, "nb_channels");
 	if (tmp == NULL) {
-		printf("appAttributes->feature_vect_size is missing\n");
+		printf("appAttributes->nb_channels is missing\n");
 		return (-1);
 	}
-	app_info->feature_vect_size = atoi(tmp->txt);
+	app_info->nb_channels = atoi(tmp->txt);
 
-	/*Get appAttributes/training_set_size*/
-	tmp = ezxml_child(app_attribute, "training_set_size");
+	/*Get appAttributes/window_width*/
+	tmp = ezxml_child(app_attribute, "window_width");
 	if (tmp == NULL) {
-		printf("appAttributes->training_set_size is missing\n");
+		printf("appAttributes->window_width is missing\n");
 		return (-1);
 	}
-	app_info->training_set_size = atoi(tmp->txt);
+	app_info->window_width = atoi(tmp->txt);
+
+	/*Get appAttributes/timeseries*/
+	tmp = ezxml_child(app_attribute, "timeseries");
+	if (tmp == NULL) {
+		printf("appAttributes->timeseries is missing\n");
+		return (-1);
+	}
+	if (strncmp(tmp->txt, "TRUE", 4) == 0) {
+		app_info->timeseries = 1;
+	} else {
+		app_info->timeseries = 0;
+	}
+
+	/*Get appAttributes/fft*/
+	tmp = ezxml_child(app_attribute, "fft");
+	if (tmp == NULL) {
+		printf("appAttributes->fft is missing\n");
+		return (-1);
+	}
+	if (strncmp(tmp->txt, "TRUE", 4) == 0) {
+		app_info->fft = 1;
+	} else {
+		app_info->fft = 0;
+	}
+
+	/*Get appAttributes/power_alpha*/
+	tmp = ezxml_child(app_attribute, "power_alpha");
+	if (tmp == NULL) {
+		printf("appAttributes->power_alpha is missing\n");
+		return (-1);
+	}
+	if (strncmp(tmp->txt, "TRUE", 4) == 0) {
+		app_info->power_alpha = 1;
+	} else {
+		app_info->power_alpha = 0;
+	}
+	
+	/*Get appAttributes/power_beta*/
+	tmp = ezxml_child(app_attribute, "power_beta");
+	if (tmp == NULL) {
+		printf("appAttributes->power_beta is missing\n");
+		return (-1);
+	}
+	if (strncmp(tmp->txt, "TRUE", 4) == 0) {
+		app_info->power_beta = 1;
+	} else {
+		app_info->power_beta = 0;
+	}
+	
+	/*Get appAttributes/power_gamma*/
+	tmp = ezxml_child(app_attribute, "power_gamma");
+	if (tmp == NULL) {
+		printf("appAttributes->power_gamma is missing\n");
+		return (-1);
+	}
+	if (strncmp(tmp->txt, "TRUE", 4) == 0) {
+		app_info->power_gamma = 1;
+	} else {
+		app_info->power_gamma = 0;
+	}
+	
+	/*Get appAttributes/window_width*/
+	tmp = ezxml_child(app_attribute, "buffer_depth");
+	if (tmp == NULL) {
+		printf("appAttributes->buffer_depth is missing\n");
+		return (-1);
+	}
+	app_info->buffer_depth = atoi(tmp->txt);
 	
 	tmp = ezxml_child(app_attribute, "eeg_harware_present");
 	if (tmp == NULL) {
@@ -111,6 +181,14 @@ static int get_app_attributes(ezxml_t app_attribute, appconfig_t * app_info)
 	} else {
 		app_info->eeg_hardware_required = 0;
 	}
+	
+	/*Get appAttributes/training_set_size*/
+	tmp = ezxml_child(app_attribute, "training_set_size");
+	if (tmp == NULL) {
+		printf("appAttributes->training_set_size is missing\n");
+		return (-1);
+	}
+	app_info->training_set_size = atoi(tmp->txt);
 	
 	tmp = ezxml_child(app_attribute, "test_duration");
 	if (tmp == NULL) {

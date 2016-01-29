@@ -25,8 +25,7 @@
 const int BUZZER_PIN = 1;
 
 /*defines the frequency scale*/
-/*settings are for a log range between 500 and 1000Hz*/
-static float exp_base = 1.065;
+/*settings are for a linear range between 500 and 1000Hz*/
 static float baseline_freq = 500;
 
 static char beep_mode_latch = 0x00; 
@@ -105,7 +104,7 @@ int set_beep_mode(unsigned char state_a, unsigned char state_b, int half_period)
  */
 void* beep_mode(void* param __attribute__ ((unused))){
 
-	printf ("Starts LED flashing\n");
+	printf ("Starts Beeping\n");
   
 	while(beep_mode_latch){ 
 		set_buzzer_state(beep_mode_state_a); 

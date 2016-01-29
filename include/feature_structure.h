@@ -1,13 +1,26 @@
 #ifndef FEATURE_STRUCTURE_H
 #define FEATURE_STRUCTURE_H
 
-typedef enum { INT32, UINT32, UINT8, DOUBLE } feature_type_t;
 
-typedef struct feature_s {
-	feature_type_t type;
-	unsigned char *ptr;
+/*
+ * Structure describing the feature vector
+ * frame information such as the presence
+ * of an eye-blink and such... 
+ */
+typedef struct frame_info_s{
+	char eye_blink_detected;
+}frame_info_t;
+
+/*
+ * Structure describing the feature vector 
+ * it is preceded by a frame_status and
+ * the actual feature vector
+ */
+typedef struct feature_buf_s {
+	frame_info_t frame_status;
 	int nb_features;
-} feature_t;
+	unsigned char *featvect_ptr;
+} feature_buf_t;
 
 
 #endif

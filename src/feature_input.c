@@ -36,6 +36,8 @@ int init_feature_input(char input_type, feature_input_t* feature_input){
 		_INIT_FEAT_INPUT_FC = &shm_rd_init;
 		_REQUEST_FEAT_FC = &shm_rd_request;
 		_WAIT_FEAT_FC = &shm_rd_wait_for_request_completed;
+		_GET_FRAME_INFO_FC = &shm_get_frame_info_ref;
+		_GET_FVECT_INFO_FC = &shm_get_feature_array_ref;
 		_TERMINATE_FEAT_INPUT_FC = &shm_rd_cleanup;
 	}
 	/*fake input interface*/
@@ -44,6 +46,8 @@ int init_feature_input(char input_type, feature_input_t* feature_input){
 		_INIT_FEAT_INPUT_FC = &fake_feat_gen_init;
 		_REQUEST_FEAT_FC = &fake_feat_gen_request;
 		_WAIT_FEAT_FC = &fake_feat_gen_wait_for_request_completed;
+		_GET_FRAME_INFO_FC = &fake_feat_gen_frame_info_ref;
+		_GET_FVECT_INFO_FC = &fake_feat_gen_feature_array_ref;
 		_TERMINATE_FEAT_INPUT_FC = &fake_feat_gen_cleanup;
 	}
 	else{

@@ -34,7 +34,7 @@ int shm_rd_init(void *param){
     /*
      * initialise the shared memory array
      */
-    if ((pfeature_input->shmid = shmget(pfeature_input->shm_key, SHM_BUF_SIZE, IPC_CREAT | 0666)) < 0) {
+    if ((pfeature_input->shmid = shmget(pfeature_input->shm_key, pfeature_input->buffer_depth*pfeature_input->page_size, IPC_CREAT | 0666)) < 0) {
         perror("shmget");
         return EXIT_FAILURE;
     }
@@ -57,6 +57,10 @@ int shm_rd_init(void *param){
 	
 	/*allocate the memory for the pointer to semaphore operations*/
 	pfeature_input->sops = (struct sembuf *) malloc(sizeof(struct sembuf));
+	
+	/*set as if the current page was the last, such that the next page read will
+	  be the first one*/
+	pfeature_input->current_page = pfeature_input->buffer_depth;
 
 	/*set all semaphores to 0*/
 	for(i=0;i<4;i++){
@@ -113,9 +117,41 @@ int shm_rd_wait_for_request_completed(void *param){
 		return EXIT_FAILURE;
 	}
 	
+	/*update page id*/
+	pfeature_input->current_page += 1;
+	pfeature_input->current_page %= pfeature_input->buffer_depth;
 	return EXIT_SUCCESS;
 	
 }
+
+/**
+ * frame_info_t* shm_get_frame_info_ref(void *param)
+ * @brief Call to get a reference to the frame info of the current page
+ * @param param, reference to the feature input struct
+ * @return references to the frame info
+ */
+frame_info_t* shm_get_frame_info_ref(void *param){
+	
+	feature_input_t* pfeature_input = param;
+	/*compute offset of current page*/
+	int offset = pfeature_input->current_page*pfeature_input->page_size;
+	return (frame_info_t*)&(pfeature_input->shm_buf[offset]);
+}
+
+/**
+ * frame_info_t* shm_get_frame_info_ref(void *param)
+ * @brief Call to get a reference to the feature vector of the current page
+ * @param param, reference to the feature input struct
+ * @return reference to the feature vector
+ */
+double* shm_get_feature_array_ref(void *param){
+	
+	feature_input_t* pfeature_input = param;
+	/*compute offset of current page and skip frame info*/
+	int offset = pfeature_input->current_page*pfeature_input->page_size + sizeof(frame_info_t);
+	return (double*)&(pfeature_input->shm_buf[offset]);
+}
+
 
 /**
  * int shm_rd_cleanup(void *param)

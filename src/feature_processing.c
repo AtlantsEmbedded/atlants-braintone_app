@@ -28,7 +28,7 @@
 #define SECOND_CHANNEL_OFFSET 3*CHANNEL_WIDTH
 
 /*threshold to detect eye-blinks*/
-#define EYE_BLINK_THRESHOLD 4
+//#define EYE_BLINK_THRESHOLD 4
 
 void get_peak_from_channels(double* max_left, double* max_right, double* feature_array);
 void stat_mean(double *a, double *mean, int dim_i, int dim_j);
@@ -40,7 +40,7 @@ void stat_std(double *a, double *mean, double *std, int dim_i, int dim_j);
  * @param feature_proc, pointer to feature processing
  * @return EXIT_SUCCESS, EXIT_FAILURE
  */
-int init_feat_processing(feat_proc_t* feature_proc){
+int init_feat_processing(feat_proc_t* feature_proc __attribute__((unused))){
 	
 	return EXIT_SUCCESS;
 }
@@ -55,7 +55,11 @@ int init_feat_processing(feat_proc_t* feature_proc){
 void train_feat_processing(feat_proc_t* feature_proc){
 
 	int i=0;
-	double* feature_array = (double*)feature_proc->feature_input->shm_buf;
+	
+	/*pointers to the feature array*/
+	frame_info_t* frame_info;
+	double* feature_array;
+	
 	double* training_set = (double*)malloc(feature_proc->nb_train_samples*NB_CHANNELS_USED*sizeof(double));
 	double max_left = 0.0;
 	double max_right = 0.0;
@@ -68,23 +72,38 @@ void train_feat_processing(feat_proc_t* feature_proc){
 	}
 	
 	/*start acquisition*/
-	for(i=0;i<feature_proc->nb_train_samples;i++){
+	i=0;
+	while(i<feature_proc->nb_train_samples){
 		
 		/*log the next sequence of samples*/
 		REQUEST_FEAT_FC(feature_proc->feature_input);
 		WAIT_FEAT_FC(feature_proc->feature_input);
-		
-		/*parse feature array to find peak values around 10Hz*/
-		get_peak_from_channels(&max_left, &max_right, feature_array);	
-		
-		/*pick the two alpha wave samples*/
-		training_set[i*2] = max_left;
-		training_set[i*2+1] = max_right;
-		
-		if(i%5==0){
-			printf("training progress: %.1f\n",(float)i/(float)feature_proc->nb_train_samples*100);
-			fflush(stdout);
-		}	
+	
+		/*get reference on current frame info*/
+		frame_info = GET_FRAME_INFO_FC(feature_proc->feature_input);
+		/*get reference on current feature array*/
+		feature_array = GET_FVECT_INFO_FC(feature_proc->feature_input);
+
+		/*check if there is an eye blink in the sample*/
+		if(!frame_info->eye_blink_detected){
+			/*parse feature array to find peak values around 10Hz*/
+			get_peak_from_channels(&max_left, &max_right, feature_array);	
+			
+			/*pick the two alpha wave samples*/
+			training_set[i*2] = max_left;
+			training_set[i*2+1] = max_right;
+			
+			if(i%5==0){
+				printf("training progress: %.1f\n",(float)i/(float)feature_proc->nb_train_samples*100);
+				fflush(stdout);
+			}	
+			i++;
+		}else{
+			printf("Frame invalid: ");
+			if(frame_info->eye_blink_detected){
+				printf("Eye blink detected\n");
+			}
+		}
 	}
 
 	/*Show the training set on console*/
@@ -105,9 +124,8 @@ void train_feat_processing(feat_proc_t* feature_proc){
 	printf("std[%i]:\t%lf\t%lf\n",i,feature_proc->std_dev[0],feature_proc->std_dev[1]);
 	fflush(stdout);	
 	
-	printf("Done\n");
+	printf("Training completed\n");
 	free(training_set);
-	printf("and Done\n");
 	
 }
 
@@ -119,37 +137,53 @@ void train_feat_processing(feat_proc_t* feature_proc){
  */
 int get_normalized_sample(feat_proc_t* feature_proc){
 	
-	double* feature_array = (double*)feature_proc->feature_input->shm_buf;
+	/*pointers to the feature array*/
+	frame_info_t* frame_info;
+	double* feature_array;
 	double features[2];
-	char eye_blink_detected = 0x01;
+	char frame_valid = 0x00;
 	double max_left=0;
 	double max_right=0;
 	
 	/*make sure to return a valid sample*/	
-	while(eye_blink_detected){	
+	while(!frame_valid){	
 		
 		/*request and...*/
 		REQUEST_FEAT_FC(feature_proc->feature_input);
 		/*wait for a sample*/
 		WAIT_FEAT_FC(feature_proc->feature_input);
+		
+		/*get reference on current frame info*/
+		frame_info = GET_FRAME_INFO_FC(feature_proc->feature_input);
+		/*get reference on current feature array*/
+		feature_array = GET_FVECT_INFO_FC(feature_proc->feature_input);
 
-		/*parse feature array to find peak values around 10Hz*/
-		get_peak_from_channels(&max_left, &max_right, feature_array);
+		if(!frame_info->eye_blink_detected){
 		
-		/*get the samples*/
-		features[0] = (max_left-feature_proc->mean[0])/feature_proc->std_dev[0];
-		features[1] = (max_right-feature_proc->mean[1])/feature_proc->std_dev[1];
-		
-		/*get the normalized average*/
-		feature_proc->sample = (features[0]+features[1])/2;
-		
-		/*hardcoded blink detection*/
-		/*(will be moved to data preprocessing, future release)*/
-		if(feature_proc->sample < EYE_BLINK_THRESHOLD){
-			eye_blink_detected = 0x00;
+			/*parse feature array to find peak values around 10Hz*/
+			get_peak_from_channels(&max_left, &max_right, feature_array);
+			
+			/*get the samples*/
+			features[0] = (max_left-feature_proc->mean[0])/feature_proc->std_dev[0];
+			features[1] = (max_right-feature_proc->mean[1])/feature_proc->std_dev[1];
+			
+			/*get the normalized average*/
+			feature_proc->sample = (features[0]+features[1])/2;
+			
+			frame_valid = 0x01;
+			
+			/*hardcoded blink detection*/
+			/*(will be moved to data preprocessing, future release)*/
+			//if(feature_proc->sample < EYE_BLINK_THRESHOLD){
+			//}else{
+				//printf("Eye blink detected!\n");
+				//fflush(stdout);
+			//}
 		}else{
-			printf("Eye blink detected!\n");
-			fflush(stdout);
+			printf("Frame invalid: ");
+			if(frame_info->eye_blink_detected){
+				printf("Eye blink detected\n");
+			}
 		}
 	}
 	
@@ -190,7 +224,7 @@ void get_peak_from_channels(double* max_left, double* max_right, double* feature
  * @param feature_proc, pointer to feature processing
  * @return EXIT_SUCCESS, EXIT_FAILURE
  */
-int clean_up_feat_processing(feat_proc_t* feature_proc){
+int clean_up_feat_processing(feat_proc_t* feature_proc __attribute__((unused))){
 	
 	return EXIT_SUCCESS;
 }

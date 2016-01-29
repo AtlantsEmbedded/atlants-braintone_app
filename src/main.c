@@ -35,9 +35,11 @@
 #define PLAYER_1 0
 
 /*function prototypes*/
-static inline void print_banner();
-inline char *which_config(int argc, char **argv);
+static void print_banner();
+char *which_config(int argc, char **argv);
 char task_running = 0x01;
+
+int configure_feature_input(feature_input_t* feature_input, appconfig_t* app_config);
 
 /*default xml file path/name*/
 #define CONFIG_NAME "config/braintone_app_config.xml"
@@ -76,9 +78,9 @@ int main(int argc, char *argv[])
 	setup_buzzer_lib();
 	
 	/*configure the feature input*/
-	feature_input[PLAYER_1].shm_key=7804;
-	feature_input[PLAYER_1].sem_key=1234;
-	init_feature_input(app_config->feature_source, &(feature_input[PLAYER_1]));
+	if(configure_feature_input(feature_input, app_config) == EXIT_FAILURE){
+		return EXIT_FAILURE;
+	}
 	
 	/*configure the inter-process communication channel*/
 	ipc_comm[PLAYER_1].sem_key=1234;
@@ -96,6 +98,9 @@ int main(int argc, char *argv[])
 	
 	/*stop beep mode*/
 	turn_off_beeper();
+	
+	printf("About to begin training\n");
+	fflush(stdout);
 	
 	/*initialize feature processing*/
 	feature_proc[PLAYER_1].nb_train_samples = app_config->training_set_size;
@@ -146,7 +151,56 @@ int main(int argc, char *argv[])
 	ipc_comm_cleanup(&(ipc_comm[PLAYER_1]));
 	clean_up_feat_processing(&(feature_proc[PLAYER_1]));
 	
-	exit(0);
+	return EXIT_SUCCESS;
+}
+
+
+
+int configure_feature_input(feature_input_t* feature_input, appconfig_t* app_config){
+	
+	int nb_features = 0;
+	
+	/*set the keys*/
+	feature_input[PLAYER_1].shm_key=7804;
+	feature_input[PLAYER_1].sem_key=1234;
+	
+	/*compute the page size from the selected features*/
+	
+	/*if timeseries are present*/
+	if(app_config->timeseries){
+		nb_features += app_config->window_width*app_config->nb_channels;
+	}
+	
+	/*Fourier transform*/
+	if(app_config->fft){
+		/*one-sided fft is half window's width+1. multiplied by number of data channels*/
+		nb_features += app_config->window_width/2*app_config->nb_channels; 
+	}
+	
+	/*EEG Power bands*/
+	/*alpha*/
+	if(app_config->power_alpha){
+		nb_features += app_config->nb_channels;
+	}
+	
+	/*beta*/
+	if(app_config->power_beta){
+		nb_features += app_config->nb_channels;
+	}
+	
+	/*gamma*/
+	if(app_config->power_gamma){
+		nb_features += app_config->nb_channels;
+	}
+	
+	/*set buffer size related fields*/
+	feature_input[PLAYER_1].nb_features = nb_features;
+	feature_input[PLAYER_1].page_size = sizeof(frame_info_t)+nb_features*sizeof(double); 
+	feature_input[PLAYER_1].buffer_depth = app_config->buffer_depth;
+	
+	init_feature_input(app_config->feature_source, &(feature_input[PLAYER_1]));
+
+	return EXIT_SUCCESS;
 }
 
 
@@ -154,7 +208,7 @@ int main(int argc, char *argv[])
  * print_banner()
  * @brief Prints app banner
  */
-static inline void print_banner()
+static void print_banner()
 {
 	printf("\nBrain Tone - EEG audio Neurofeedback\n\n");
 	printf("Frederic Simard (fred.simard@atlantsembedded.com)\n");
@@ -170,7 +224,7 @@ static inline void print_banner()
  * @param argv
  * @return string of config
  */
-inline char *which_config(int argc, char **argv)
+char *which_config(int argc, char **argv)
 {
 
 	if (argc == 2) {
