@@ -68,7 +68,6 @@ SOURCES       = src/main.c \
 				src/feature_processing.c \
 				src/ipc_status_comm.c \
 				src/xml.c \
-				src/wiringPi.c \
 				src/supported_feature_input/fake_feature_generator.c \
 				src/supported_feature_input/shm_rd_buf.c
 OBJECTS       = src/main.o \
@@ -78,7 +77,6 @@ OBJECTS       = src/main.o \
 				src/feature_processing.o \
 				src/ipc_status_comm.o \
 				src/xml.o \
-				src/wiringPi.o \
 				src/supported_feature_input/fake_feature_generator.o \
 				src/supported_feature_input/shm_rd_buf.o
 DESTDIR       = #avoid trailing-slash linebreak
@@ -144,9 +142,6 @@ ipc_status_comm.o: src/ipc_status_comm.c
 	
 xml.o: src/xml.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o xml.o src/xml.c
-
-wiringPi.o: src/wiringPi.c 
-	$(CC) -c $(CFLAGS) $(INCPATH) -o wiringPi.o src/wiringPi.c
 	
 fake_feature_generator.o: src/supported_feature_input/fake_feature_generator.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o fake_feature_generator.o src/supported_feature_input/fake_feature_generator.c
