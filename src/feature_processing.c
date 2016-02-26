@@ -17,6 +17,8 @@
 #include "feature_processing.h"
 #include "feature_input.h"
 
+#include <stats.h>
+
 #define NB_CHANNELS_USED 2
 #define NB_PACKETS_DROPPED 3
 
@@ -31,8 +33,6 @@
 //#define EYE_BLINK_THRESHOLD 4
 
 void get_peak_from_channels(double *max_left, double *max_right, double *feature_array);
-void stat_mean(double *a, double *mean, int dim_i, int dim_j);
-void stat_std(double *a, double *mean, double *std, int dim_i, int dim_j);
 
 /**
  * int init_feat_processing(feat_proc_t* feature_proc)
@@ -240,66 +240,3 @@ int clean_up_feat_processing(feat_proc_t * feature_proc __attribute__ ((unused))
 	return EXIT_SUCCESS;
 }
 
-/**
- * void stat_mean(double *a, double *mean, int dim_i, int dim_j)
- * @brief Function to compute the mean of a matrix
- * @param double *a , the matrix
- * @param double *mean (out), the vector that will contain the mean of each column of A
- * @param int dim_i, the number of rows in the matrix
- * @param int dim_j, the number of colomns in the matrix
- */
-void stat_mean(double *A, double *mean, int dim_i, int dim_j)
-{
-	int i = 0, j = 0, n = 0;
-
-	/*initialize the mean vector */
-	for (j = 0; j < dim_j; j++) {
-		mean[j] = 0;
-	}
-
-	/*Sum of each column */
-	for (i = 0; i < dim_i; i++) {
-		n = i * dim_j;
-		for (j = 0; j < dim_j; j++) {
-			mean[j] += A[j + n];
-		}
-	}
-
-	/*Divide to get average */
-	for (j = 0; j < dim_j; j++) {
-		mean[j] /= dim_i;
-	}
-}
-
-/**
- * void stat_mean(double *a, double *mean, int dim_i, int dim_j)
- * @brief Function to compute the std deviation vector of a matrix
- * @param double *A , the matrix
- * @param double *mean , the mean vector
- * @param double *std (out), the std vector
- * @param int dim_i, the number of rows in the matrix
- * @param int dim_j, the number of colomns in the matrix
- */
-void stat_std(double *A, double *mean, double *std, int dim_i, int dim_j)
-{
-	int i = 0, j = 0, n = 0;
-
-	/*initialize the std vector */
-	for (j = 0; j < dim_j; j++) {
-		std[j] = 0;
-	}
-
-	/*Sum of each column */
-	for (i = 0; i < dim_i; i++) {
-		n = i * dim_j;
-		for (j = 0; j < dim_j; j++) {
-			std[j] += (A[j + n] - mean[j]) * (A[j + n] - mean[j]);
-		}
-	}
-
-	/*Divide to get average */
-	for (j = 0; j < dim_j; j++) {
-		std[j] /= (double)(dim_i - 1);
-		std[j] = sqrt(std[j]);
-	}
-}

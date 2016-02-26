@@ -16,7 +16,7 @@ GLIB2_CC	  = `pkg-config --cflags glib-2.0`
 GLIB2_LINK	  = `pkg-config --libs glib-2.0`
 
 ifeq ($(ARCH), arm)
-	ARCH_LIBS = -lwiringPi -lwiringPiDev -lbuzzer
+	ARCH_LIBS = -lwiringPi -lwiringPiDev -lbuzzer -lstats
 	RASPI_DEFINES  =-DRASPI=1
 	INCPATH       = -I. \
                 -Iinclude \
