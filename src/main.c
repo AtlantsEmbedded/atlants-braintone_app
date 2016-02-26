@@ -22,8 +22,9 @@
 
 #include <wiringPi.h>
 #include <softTone.h>
+#include <buzzer_lib.h>
+
 #include "app_signal.h"
-#include "buzzer_lib.h"
 #include "feature_processing.h"
 #include "ipc_status_comm.h"
 #include "feature_input.h"
@@ -75,7 +76,7 @@ int main(int argc, char *argv[])
 	app_config = xml_initialize(which_config(argc, argv));
 	
 	/*setup the buzzer*/
-	setup_buzzer_lib();
+	setup_buzzer_lib(DEFAULT_PIN);
 	
 	/*configure the feature input*/
 	if(configure_feature_input(feature_input, app_config) == EXIT_FAILURE){
