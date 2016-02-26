@@ -17,7 +17,10 @@
 
 /**
  * int init_feature_input(char input_type)
- * @brief Setup function pointers for the data input
+ * 
+ * @brief Setup function pointers for the data input based on the type
+ * of data source which could be shared memory (SHM) or a fake signal generator
+ * (FAKE).
  * @param input_type, string identifying the type of input to init
  * @return EXIT_FAILURE for unknown type, EXIT_SUCCESS for known/success
  */

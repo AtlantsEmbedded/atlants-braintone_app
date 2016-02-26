@@ -16,7 +16,7 @@ GLIB2_CC	  = `pkg-config --cflags glib-2.0`
 GLIB2_LINK	  = `pkg-config --libs glib-2.0`
 
 ifeq ($(ARCH), arm)
-	ARCH_LIBS = -lwiringPi -lwiringPiDev
+	ARCH_LIBS = -lwiringPi -lwiringPiDev -lbuzzer
 	RASPI_DEFINES  =-DRASPI=1
 	INCPATH       = -I. \
                 -Iinclude \
@@ -63,7 +63,6 @@ OBJECTS_DIR   = ./
 
 SOURCES       = src/main.c \
 				src/app_signal.c \
-				src/buzzer_lib.c \
 				src/feature_input.c \
 				src/feature_processing.c \
 				src/ipc_status_comm.c \
@@ -72,7 +71,6 @@ SOURCES       = src/main.c \
 				src/supported_feature_input/shm_rd_buf.c
 OBJECTS       = src/main.o \
 				src/app_signal.o \
-				src/buzzer_lib.o \
 				src/feature_input.o \
 				src/feature_processing.o \
 				src/ipc_status_comm.o \
@@ -127,9 +125,6 @@ main.o: src/main.c
 	
 app_signal.o: src/app_signal.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o app_signal.o src/app_signal.c
-	
-buzzer_lib.o: src/buzzer_lib.c 
-	$(CC) -c $(CFLAGS) $(INCPATH) -o buzzer_lib.o src/buzzer_lib.c
 	
 feature_input.o: src/feature_input.c 
 	$(CC) -c $(CFLAGS) $(INCPATH) -o feature_input.o src/feature_input.c
