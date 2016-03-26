@@ -60,7 +60,7 @@ int shm_rd_init(void *param){
 	
 	/*set as if the current page was the last, such that the next page read will
 	  be the first one*/
-	pfeature_input->current_page = pfeature_input->buffer_depth;
+	pfeature_input->current_page = pfeature_input->buffer_depth-1;
 
 	/*set all semaphores to 0*/
 	for(i=0;i<4;i++){
