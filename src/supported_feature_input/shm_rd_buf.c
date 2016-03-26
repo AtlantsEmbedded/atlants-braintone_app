@@ -135,6 +135,7 @@ frame_info_t* shm_get_frame_info_ref(void *param){
 	feature_input_t* pfeature_input = param;
 	/*compute offset of current page*/
 	int offset = pfeature_input->current_page*pfeature_input->page_size;
+	printf("offset: %d\n",offset);
 	return (frame_info_t*)&(pfeature_input->shm_buf[offset]);
 }
 
