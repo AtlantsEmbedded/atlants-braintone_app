@@ -41,6 +41,8 @@ char *which_config(int argc, char **argv);
 char task_running = 0x01;
 
 int configure_feature_input(feature_input_t* feature_input, appconfig_t* app_config);
+void* train_player(void* param);
+void* get_sample(void* param);
 
 /*default xml file path/name*/
 #define CONFIG_NAME "config/braintone_app_config.xml"
@@ -55,6 +57,7 @@ int configure_feature_input(feature_input_t* feature_input, appconfig_t* app_con
 int main(int argc, char *argv[])
 {	
 	/*freq index*/
+	char res;
 	double cpu_time_used;
 	double running_avg = 0;
 	double adjusted_sample = 0;
@@ -62,6 +65,9 @@ int main(int argc, char *argv[])
 	feature_input_t feature_input[NB_PLAYERS];
 	ipc_comm_t ipc_comm[NB_PLAYERS];
 	feat_proc_t feature_proc[NB_PLAYERS];
+	
+	pthread_attr_t attr;
+	pthread_t threads_array[NB_PLAYERS];
 	
 	/*configuration structure*/
 	appconfig_t* app_config;
@@ -87,6 +93,11 @@ int main(int argc, char *argv[])
 	ipc_comm[PLAYER_1].sem_key=1234;
 	ipc_comm_init(&(ipc_comm[PLAYER_1]));
 	
+	/*configure threads*/
+	res = pthread_attr_init(&attr);
+	if (res != 0)
+		return EXIT_FAILURE;
+	
 	/*set beep mode*/
 	set_beep_mode(50, 0, 500);
 
@@ -109,7 +120,10 @@ int main(int argc, char *argv[])
 	init_feat_processing(&(feature_proc[PLAYER_1]));
 		
 	/*start training*/	
-	train_feat_processing(&(feature_proc[PLAYER_1]));
+	//train_feat_processing(&(feature_proc[PLAYER_1]));
+	pthread_create(&threads_array[PLAYER_1], &attr,
+				   train_player, (void*)&(feature_proc[PLAYER_1]));
+	pthread_join(threads_array[PLAYER_1], NULL);			   
 	
 	/*little pause between training and testing*/	
 	printf("About to start task\n");
@@ -122,7 +136,10 @@ int main(int argc, char *argv[])
 	while(task_running){
 	
 		/*get a normalized sample*/
-		get_normalized_sample(&(feature_proc[PLAYER_1]));
+		//get_normalized_sample(&(feature_proc[PLAYER_1]));
+		pthread_create(&threads_array[PLAYER_1], &attr,
+					   get_sample, (void*)&(feature_proc[PLAYER_1]));
+		pthread_join((void*)&threads_array[PLAYER_1], NULL);		
 		
 		/*adjust the sample value to the pitch scale*/
 		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
@@ -235,3 +252,25 @@ char *which_config(int argc, char **argv)
 	}
 }
 
+
+/**
+ * void* train_player(void* param)
+ * @brief thread that trains a player
+ * @param param, (feat_proc_t*) player to train
+ * @return NULL
+ */
+void* train_player(void* param){
+	train_feat_processing((feat_proc_t*)param);
+	return NULL;
+}
+
+/**
+ * void* train_player(void* param)
+ * @brief thread that gets a sample for a player
+ * @param param, (feat_proc_t*) player to train
+ * @return NULL
+ */
+void* get_sample(void* param){
+	get_normalized_sample((feat_proc_t*)param);
+	return NULL;
+}
