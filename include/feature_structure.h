@@ -9,6 +9,7 @@
  */
 typedef struct frame_info_s{
 	char eye_blink_detected;
+	char padding[7];
 }frame_info_t;
 
 /*
