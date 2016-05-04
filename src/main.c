@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
 		
 	/*start training*/	
 	//train_feat_processing(&(feature_proc[PLAYER_1]));
-	pthread_create(&threads_array[PLAYER_1], &attr,
+	pthread_create(&(threads_array[PLAYER_1]), &attr,
 				   train_player, (void*)&(feature_proc[PLAYER_1]));
 	pthread_join(threads_array[PLAYER_1], NULL);			   
 	
@@ -137,9 +137,9 @@ int main(int argc, char *argv[])
 	
 		/*get a normalized sample*/
 		//get_normalized_sample(&(feature_proc[PLAYER_1]));
-		pthread_create(&threads_array[PLAYER_1], &attr,
+		pthread_create(&(threads_array[PLAYER_1]), &attr,
 					   get_sample, (void*)&(feature_proc[PLAYER_1]));
-		pthread_join((void*)&threads_array[PLAYER_1], NULL);		
+		pthread_join(threads_array[PLAYER_1], NULL);		
 		
 		/*adjust the sample value to the pitch scale*/
 		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
