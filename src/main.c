@@ -136,15 +136,18 @@ int main(int argc, char *argv[])
 	while(task_running){
 	
 		/*get a normalized sample*/
-		//get_normalized_sample(&(feature_proc[PLAYER_1]));
 		pthread_create(&(threads_array[PLAYER_1]), &attr,
 					   get_sample, (void*)&(feature_proc[PLAYER_1]));
 		pthread_join(threads_array[PLAYER_1], NULL);		
 		
 		/*adjust the sample value to the pitch scale*/
-		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
+		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*50/4);
 		/*compute the running average, using the defined kernel*/
 		running_avg += (adjusted_sample-running_avg)/app_config->avg_kernel;
+		
+		if(running_avg<-4){
+			running_avg = -4;
+		}
 		
 		/*update buzzer state*/
 		set_buzzer_state(running_avg);

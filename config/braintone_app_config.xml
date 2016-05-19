@@ -12,8 +12,8 @@
     <power_gamma>FALSE</power_gamma>
     <buffer_depth>2</buffer_depth>
     <eeg_harware_present>TRUE</eeg_harware_present>
-    <training_set_size>20</training_set_size>
-    <test_duration>60</test_duration>
-    <avg_kernel>10</avg_kernel>
+    <training_set_size>30</training_set_size>
+    <test_duration>360</test_duration>
+    <avg_kernel>5</avg_kernel>
   </appAttributes>
  </appConfig>

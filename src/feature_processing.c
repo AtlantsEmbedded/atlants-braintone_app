@@ -177,7 +177,13 @@ int get_normalized_sample(feat_proc_t * feature_proc)
 			/*get the normalized average */
 			feature_proc->sample = (features[0] + features[1]) / 2;
 
-			frame_valid = 0x01;
+			if(abs(feature_proc->sample)>7){
+				printf("Frame invalid: ");
+				printf("Exceeding tolerances\n");
+			}else{
+				frame_valid = 0x01;
+			}
+			
 
 		} else {
 			printf("Frame invalid: ");
