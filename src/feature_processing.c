@@ -29,10 +29,9 @@
 #define CHANNEL_WIDTH 55
 #define SECOND_CHANNEL_OFFSET 3*CHANNEL_WIDTH
 
-/*threshold to detect eye-blinks*/
-//#define EYE_BLINK_THRESHOLD 4
 
 void get_peak_from_channels(double *max_left, double *max_right, double *feature_array);
+void get_mean_from_channels(double *mean_left, double *mean_right, double *feature_array);
 
 /**
  * int init_feat_processing(feat_proc_t* feature_proc)
@@ -67,8 +66,8 @@ void train_feat_processing(feat_proc_t * feature_proc)
 		printf("Training_set malloc() may have failed OR is NULL\n - may function not as intented\n");
 	}
 
-	double max_left = 0.0;
-	double max_right = 0.0;
+	double mean_left = 0.0;
+	double mean_right = 0.0;
 
 	/*drop first NB_PACKETS_DROPPED packets to prevent errors */
 	/*(empirical observation, should be fixed in data_interface in a later release) */
@@ -93,11 +92,11 @@ void train_feat_processing(feat_proc_t * feature_proc)
 		/*check if there is an eye blink in the sample */
 		if (!frame_info->eye_blink_detected) {
 			/*parse feature array to find peak values around 10Hz */
-			get_peak_from_channels(&max_left, &max_right, feature_array);
+			get_mean_from_channels(&mean_left, &mean_right, feature_array);
 
 			/*pick the two alpha wave samples */
-			training_set[i * 2] = max_left;
-			training_set[i * 2 + 1] = max_right;
+			training_set[i * 2] = mean_left;
+			training_set[i * 2 + 1] = mean_right;
 
 			if (i % 5 == 0) {
 				printf("training progress: %.1f\n",
@@ -151,8 +150,8 @@ int get_normalized_sample(feat_proc_t * feature_proc)
 	double *feature_array;
 	double features[2];
 	char frame_valid = 0x00;
-	double max_left = 0;
-	double max_right = 0;
+	double mean_left = 0;
+	double mean_right = 0;
 
 	/*make sure to return a valid sample */
 	while (!frame_valid) {
@@ -168,26 +167,18 @@ int get_normalized_sample(feat_proc_t * feature_proc)
 		feature_array = GET_FVECT_INFO_FC(feature_proc->feature_input);
 
 		if (!frame_info->eye_blink_detected) {
-
 			/*parse feature array to find peak values around 10Hz */
-			get_peak_from_channels(&max_left, &max_right, feature_array);
+			get_mean_from_channels(&mean_left, &mean_right, feature_array);
 
 			/*get the samples */
-			features[0] = (max_left - feature_proc->mean[0]) / feature_proc->std_dev[0];
-			features[1] = (max_right - feature_proc->mean[1]) / feature_proc->std_dev[1];
+			features[0] = (mean_left - feature_proc->mean[0]) / feature_proc->std_dev[0];
+			features[1] = (mean_right - feature_proc->mean[1]) / feature_proc->std_dev[1];
 
 			/*get the normalized average */
 			feature_proc->sample = (features[0] + features[1]) / 2;
 
 			frame_valid = 0x01;
 
-			/*hardcoded blink detection */
-			/*(will be moved to data preprocessing, future release) */
-			//if(feature_proc->sample < EYE_BLINK_THRESHOLD){
-			//}else{
-			//printf("Eye blink detected!\n");
-			//fflush(stdout);
-			//}
 		} else {
 			printf("Frame invalid: ");
 			if (frame_info->eye_blink_detected) {
@@ -227,6 +218,33 @@ void get_peak_from_channels(double *max_left, double *max_right, double *feature
 		}
 	}
 }
+
+
+
+/**
+ * void get_mean_from_channels(double *mean_left, double *mean_right, double *feature_array)
+ * @brief parse newly acquired sample to return the mean value within the defined range
+ * @param mean_left(out), mean value left channel
+ * @param mean_right(out), mean value right channel
+ * @param feature_array, array of features to be parsed
+ * @return EXIT_SUCCESS, EXIT_FAILURE
+ */
+void get_mean_from_channels(double *mean_left, double *mean_right, double *feature_array)
+{
+
+	int k = 0;
+
+	/*read beginning of feature range */
+	*mean_left = feature_array[FEAT_IDX_START];
+	*mean_right = feature_array[FEAT_IDX_START + SECOND_CHANNEL_OFFSET];
+
+	/*find max within the range for left and right */
+	for (k = FEAT_IDX_SECOND; k < FEAT_IDX_END; k++) {
+		*mean_left += feature_array[k];
+		*mean_right += feature_array[k + SECOND_CHANNEL_OFFSET];
+	}
+}
+
 
 /**
  * int clean_up_feat_processing(feat_proc_t* feature_proc)
