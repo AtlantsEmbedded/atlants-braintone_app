@@ -147,6 +147,7 @@ int main(int argc, char *argv[])
 		sleep(3);	
 			
 		start = clock();
+		task_running = 0x01;
 			
 		/*run the test*/
 		while(task_running){
