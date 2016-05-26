@@ -29,6 +29,7 @@
 #include "ipc_status_comm.h"
 #include "feature_input.h"
 #include "xml.h"
+#include "gpio_wrapper.h"
 
 /*defines the frequency scale*/
 #define NB_STEPS 100
@@ -39,6 +40,7 @@
 static void print_banner();
 char *which_config(int argc, char **argv);
 char task_running = 0x01;
+char program_running = 0x01;
 
 int configure_feature_input(feature_input_t* feature_input, appconfig_t* app_config);
 void* train_player(void* param);
@@ -77,6 +79,8 @@ int main(int argc, char *argv[])
 
 	/*Show program banner on stdout*/
 	print_banner();
+	/*setup gpios*/
+	setup_gpios();
 	
 	/*read the xml*/
 	app_config = xml_initialize(which_config(argc, argv));
@@ -111,62 +115,74 @@ int main(int argc, char *argv[])
 	/*stop beep mode*/
 	turn_off_beeper();
 	
-	printf("About to begin training\n");
-	fflush(stdout);
 	
-	/*initialize feature processing*/
-	feature_proc[PLAYER_1].nb_train_samples = app_config->training_set_size;
-	feature_proc[PLAYER_1].feature_input = &(feature_input[PLAYER_1]);
-	init_feat_processing(&(feature_proc[PLAYER_1]));
+	while(program_running){
+			
+		/*set beep mode*/
+		set_beep_mode(50, 0, 500);
 		
-	/*start training*/	
-	//train_feat_processing(&(feature_proc[PLAYER_1]));
-	pthread_create(&(threads_array[PLAYER_1]), &attr,
-				   train_player, (void*)&(feature_proc[PLAYER_1]));
-	pthread_join(threads_array[PLAYER_1], NULL);			   
+		/*wait for button pressed*/
+		wait_for_start_demo();
+		
+		turn_off_beeper();
 	
-	/*little pause between training and testing*/	
-	printf("About to start task\n");
-	fflush(stdout);	
-	sleep(3);	
+		printf("About to begin training\n");
+		fflush(stdout);
 		
-	start = clock();
-		
-	/*run the test*/
-	while(task_running){
-	
-		/*get a normalized sample*/
+		/*initialize feature processing*/
+		feature_proc[PLAYER_1].nb_train_samples = app_config->training_set_size;
+		feature_proc[PLAYER_1].feature_input = &(feature_input[PLAYER_1]);
+		init_feat_processing(&(feature_proc[PLAYER_1]));
+			
+		/*start training*/	
+		//train_feat_processing(&(feature_proc[PLAYER_1]));
 		pthread_create(&(threads_array[PLAYER_1]), &attr,
-					   get_sample, (void*)&(feature_proc[PLAYER_1]));
-		pthread_join(threads_array[PLAYER_1], NULL);		
+					   train_player, (void*)&(feature_proc[PLAYER_1]));
+		pthread_join(threads_array[PLAYER_1], NULL);			   
 		
-		/*adjust the sample value to the pitch scale*/
-		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
-		/*compute the running average, using the defined kernel*/
-		running_avg += (adjusted_sample-running_avg)/app_config->avg_kernel;
+		/*little pause between training and testing*/	
+		printf("About to start task\n");
+		fflush(stdout);	
+		sleep(3);	
+			
+		start = clock();
+			
+		/*run the test*/
+		while(task_running){
 		
-		if(running_avg<-4){
-			running_avg = -4;
+			/*get a normalized sample*/
+			pthread_create(&(threads_array[PLAYER_1]), &attr,
+						   get_sample, (void*)&(feature_proc[PLAYER_1]));
+			pthread_join(threads_array[PLAYER_1], NULL);		
+			
+			/*adjust the sample value to the pitch scale*/
+			adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
+			/*compute the running average, using the defined kernel*/
+			running_avg += (adjusted_sample-running_avg)/app_config->avg_kernel;
+			
+			if(running_avg<-4){
+				running_avg = -4;
+			}
+			
+			/*update buzzer state*/
+			set_buzzer_state(running_avg);
+			
+			/*show sample value on console*/
+			printf("sample value: %i\n",(int)running_avg);
+			
+			/*get current time*/
+			end = clock();
+			cpu_time_used = ((double) (end - start)) / (double)CLOCKS_PER_SEC * 100;
+			
+			/*check if one of the stop conditions is met*/
+			if(app_config->test_duration < cpu_time_used){
+				task_running = 0x00;
+			}
+			
 		}
 		
-		/*update buzzer state*/
-		set_buzzer_state(running_avg);
-		
-		/*show sample value on console*/
-		printf("sample value: %i\n",(int)running_avg);
-		
-		/*get current time*/
-		end = clock();
-		cpu_time_used = ((double) (end - start)) / (double)CLOCKS_PER_SEC * 100;
-		
-		/*check if one of the stop conditions is met*/
-		if(app_config->test_duration < cpu_time_used){
-			task_running = 0x00;
-		}
-		
+		printf("Finished\n");
 	}
-	
-	printf("Finished\n");
 	
 	/*clean up app*/	
 	ipc_comm_cleanup(&(ipc_comm[PLAYER_1]));
