@@ -141,7 +141,7 @@ int main(int argc, char *argv[])
 		pthread_join(threads_array[PLAYER_1], NULL);		
 		
 		/*adjust the sample value to the pitch scale*/
-		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*50/4);
+		adjusted_sample = ((float)feature_proc[PLAYER_1].sample*100/4);
 		/*compute the running average, using the defined kernel*/
 		running_avg += (adjusted_sample-running_avg)/app_config->avg_kernel;
 		
