@@ -8,7 +8,7 @@
 #include "gpio_wrapper.h"
 
 
-#define	START_DEMO	1
+#define	START_DEMO 0
 
 
 void setup_gpios(void){
@@ -30,7 +30,7 @@ void setup_gpios(void){
  */
 void wait_for_start_demo(void)
 {
-	  printf("Waiting to start "); 
+	  printf("Waiting to start\n"); 
 	  fflush(stdout);
 	  
 	  /*wait for start button to be pressed*/
