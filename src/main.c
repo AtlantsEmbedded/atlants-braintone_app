@@ -119,7 +119,7 @@ int main(int argc, char *argv[])
 	while(program_running){
 			
 		/*set beep mode*/
-		set_beep_mode(50, 0, 750);
+		set_beep_mode(25, 0, 500);
 		
 		/*wait for button pressed*/
 		wait_for_start_demo();
