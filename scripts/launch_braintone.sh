@@ -1,11 +1,20 @@
 #!/bin/sh /etc/rc.common
 # MindBx startup script
 
-START=1
-STOP=2
+START=99
+#STOP=100
 
 start() {
 
+	while ! ls /sys/class/bluetooth/hci0 1> /dev/null 2>&1; do
+		echo "waiting for hci0..."
+		sleep 1
+	done
+
+	sleep 10
+
+	echo "hci0 is present"
+	
 	hciconfig hci0 sspmode 1
 
 	/intelli/data/data_interface /intelli/data/config/data_config.xml &
@@ -22,6 +31,18 @@ stop() {
 }
 
 boot() {
+	
+	
+	while ! ls /sys/class/bluetooth/hci0 1> /dev/null 2>&1; do
+		echo "waiting for hci0..."
+		sleep 1
+	done
+
+	sleep 10
+
+	echo "hci0 is present"
+	
+	
 	hciconfig hci0 sspmode 1
 
 	/intelli/data/data_interface /intelli/data/config/data_config.xml &
