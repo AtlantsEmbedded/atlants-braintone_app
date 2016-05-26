@@ -13,12 +13,6 @@
 
 void setup_gpios(void){
 
-	  /*check if root*/
-	  if (geteuid () != 0){
-			fprintf (stderr, "braintone need to be root to run\n") ;
-			exit (0) ;
-	  }
-
 	  /*setup the wiring pi*/
 	  if (wiringPiSetup () == -1)
 			exit (1) ;
