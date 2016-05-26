@@ -113,7 +113,8 @@ int main(int argc, char *argv[])
 	}
 	
 	/*stop beep mode*/
-	turn_off_beeper();
+	turn_off_beeper();	
+	sleep(1);
 	
 	
 	while(program_running){
